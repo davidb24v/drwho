@@ -20,8 +20,9 @@ BUTTONS = [11, 13]
 
 # Initialise pins
 # LEDs
-GPIO.setup(STATUS_LED[0], GPIO.OUT, GPIO.LOW)
-GPIO.setup(STATUS_LED[1], GPIO.OUT, GPIO.LOW)
+for led in STATUS_LED:
+    GPIO.setup(led, GPIO.OUT, GPIO.LOW)
+
 # Buttons
 for button in BUTTONS:
     GPIO.setup(button, GPIO.IN)
@@ -53,7 +54,6 @@ def busy():
     showStatus()
 
 # Callbacks for Buttons
-
 def button(channel):
     global BUTTON_PRESSED
     if STATUS != 0:
@@ -63,8 +63,8 @@ def button(channel):
 
 # Add events for buttons
 # The software debounce option sucks, do it properly
-GPIO.add_event_detect(BUTTONS[0], GPIO.RISING, callback=button)
-GPIO.add_event_detect(BUTTONS[1], GPIO.RISING, callback=button)
+for btn in BUTTONS:
+    GPIO.add_event_detect(btn, GPIO.RISING, callback=button)
 
 
 # The MP3 files

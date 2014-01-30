@@ -26,7 +26,7 @@ def pulsateLed():
     values = [int(100 * x ** 3) for x in values]
     increasing = True
     count = 0
-    delay = 0.02
+    delay = 0.005
     pwm.start(0)
 
     while True:
