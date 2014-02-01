@@ -71,7 +71,7 @@ class SonicRGB(object):
         self.pwm.append(GPIO.PWM(self.green, self.pwmFrequency))
         self.pwm.append(GPIO.PWM(self.blue, self.pwmFrequency))
         for p in self.pwm:
-            p.start(self.ON)
+            p.start(self.OFF)
 
     def play(self, track):
 
@@ -98,15 +98,19 @@ class SonicRGB(object):
         self.output.setformat(audio.PCM_FORMAT_S16_LE)
         self.output.setperiodsize(CHUNK_SIZE)
 
-        self.frequency_limits = self._calculate_channel_frequency(100, 15000)
+        self.frequency_limits = self._calculate_channel_frequency(50, 10000)
         print("frequency_limits", self.frequency_limits)
 
         # Start playing in new thread...
         self.playing = True
-        self._player = Process(target=self._play)
-        self._player.start()
+        #self._player = Process(target=_play, args=[se])
+        #self._player.start()
+        self._play()
 
-    def _play(self):
+    def _play(self, select=None):
+        for p in self.pwm:
+            p.ChangeDutyCycle(self.OFF)
+
         data = self.musicFile.readframes(CHUNK_SIZE)
         count = 0
         while data != '':
@@ -114,20 +118,32 @@ class SonicRGB(object):
 
             values = self._calculate_levels(data, self.sample_rate,
                                             self.frequency_limits)
+            #print(values)
 
-            if self.commonCathode:
-                for p, val in zip(self.pwm, values):
-                    print(int(100 - val), end=' ')
-                    p.ChangeDutyCycle(int(100 - val))
+            if select is None:
+                if self.commonCathode:
+                    for p, val in zip(self.pwm, values):
+                        p.ChangeDutyCycle(int(100 - val))
+                else:
+                    for p, val in zip(self.pwm, values):
+                        p.ChangeDutyCycle(int(val))
             else:
-                for p, val in zip(self.pwm, values):
-                    p.ChangeDutyCycle(int(val))
+                if self.commonCathode:
+                    val = values[select]
+                    self.pwm[select].ChangeDutyCycle(int(100 - val))
+                else:
+                    val = values[select]
+                    self.pwm[select].ChangeDutyCycle(int(val))
+
 
             count = count+1
-            print(count)
+            #print(count)
             data = self.musicFile.readframes(CHUNK_SIZE)
 
         self.musicFile.close()
+        self.playing = False
+        for p in self.pwm:
+            p.ChangeDutyCycle(self.OFF)
 
 
     def _calculate_levels(self, data, sample_rate, frequency_limits):
@@ -169,11 +185,13 @@ class SonicRGB(object):
         result = [0 for i in range(GPIOLEN)]
         for i in range(GPIOLEN):
             # take the log10 of the resulting sum to approximate how human ears perceive sound levels
-            result[i] = np.log10(np.sum(power[self._piff(frequency_limits[i][0], sample_rate):
-                                              self._piff(frequency_limits[i][1], sample_rate):1]))
+            result[i] = np.sum(power[self._piff(frequency_limits[i][0], sample_rate):
+                                     self._piff(frequency_limits[i][1], sample_rate):1])
         result = np.clip(result,1.0,1.0e20)
-        mag = 0.01*np.sqrt(np.dot(result, result))
-        result = result/mag
+        #mag = 0.01*np.sqrt(np.dot(result, result))
+        #result = result/mag
+        #print(result)
+        result = np.clip(100 * result / np.max(result), 0, 100)
         return result
 
     def _piff(self, val, sample_rate):
@@ -182,6 +200,12 @@ class SonicRGB(object):
 
     def _calculate_channel_frequency(self, min_frequency, max_frequency):
         '''Calculate frequency values for each channel'''
+
+        f0 = 0
+        f1 = 250
+        f2 = 2000
+        f3 = 20000
+        return [[f0, f1], [f1, f2], [f2, f3]]
 
         # How many channels do we need to calculate the frequency for
         channel_length = GPIOLEN
