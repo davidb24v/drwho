@@ -38,13 +38,13 @@ class PulsatingLED(object):
             return
         self.count = 0
         self.running = True
-        self.thread = threading.Thread(target=self.__play)
+        self.thread = threading.Thread(target=self.__run)
         self.thread.start()
 
     def stop(self):
         self.running = False
 
-    def __play(self):
+    def __run(self):
         while self.running:
             self.pwm.ChangeDutyCycle(self.values[self.count])
             self.count += 1
