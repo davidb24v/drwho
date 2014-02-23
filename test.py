@@ -3,12 +3,18 @@ import time
 import RPi.GPIO as GPIO
 from pulsatingLED import PulsatingLED
 
-m = SonicRGB(pwmFrequency=500, commonCathode=False,
+# Define PINS
+RED = 7
+GREEN = 24
+BLUE = 26
+
+m = SonicRGB(red=7, green=24, blue=26,
+             pwmFrequency=500, commonCathode=False,
              cutoffs=[50, 500, 2000, 15000])
 
-r = PulsatingLED(19, k=2)
-g = PulsatingLED(21, offset=45.0)
-b = PulsatingLED(23, offset=90.0)
+r = PulsatingLED(19, brightness=50)
+g = PulsatingLED(21, offset=45.0, brightness=50)
+b = PulsatingLED(23, offset=90.0, brightness=50)
 
 r.start()
 g.start()
@@ -28,7 +34,6 @@ while False:
 
 m.play('mp3/theme.mp3')
 time.sleep(1)
-r.stop()
 m.play('mp3/tardis1.mp3')
 time.sleep(1)
 
@@ -46,6 +51,7 @@ time.sleep(1)
 #m.play('../Runaway.mp3')
 #time.sleep(1)
 
+r.stop()
 g.stop()
 b.stop()
 GPIO.cleanup()

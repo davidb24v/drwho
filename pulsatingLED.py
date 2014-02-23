@@ -1,6 +1,6 @@
 '''
 
-Dr Who Box: RGB LED
+Dr Who Box: Pulsating LED
 
 '''
 
@@ -16,7 +16,8 @@ class PulsatingLED(object):
     waveform: sin((theta+offset)*k)**2
     '''
 
-    def __init__(self, pin, delay=0.01, k=1.0, offset=0.0, pwmFreq=100):
+    def __init__(self, pin, delay=0.01, k=1.0, offset=0.0, pwmFreq=100,
+                 brightness=100, power=1):
         self.pin = pin
         self.delay = delay
         self.count = 0
@@ -26,12 +27,12 @@ class PulsatingLED(object):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
         GPIO.setup(self.pin, GPIO.OUT, GPIO.LOW)
-        self.pwm = GPIO.PWM(self.pin, 100)
+        self.pwm = GPIO.PWM(self.pin, pwmFreq)
         self.pwm.start(0)
 
         # Setup our data
         self.values = [math.sin((x + offset) * k * math.pi / 180.0) for x in range(0, 181)]
-        self.values = [int(100 * x ** 2) for x in self.values]
+        self.values = [int(brightness * abs(x) ** power) for x in self.values]
 
     def start(self):
         if self.running:
@@ -43,6 +44,7 @@ class PulsatingLED(object):
 
     def stop(self):
         self.running = False
+        self.thread.join()
 
     def __run(self):
         while self.running:

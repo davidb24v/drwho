@@ -25,11 +25,6 @@ import decoder
 import numpy as np
 import alsaaudio as audio
 
-# Define PINS
-RED = 7
-GREEN = 24
-BLUE = 26
-
 # Number of frequency channels
 GPIOLEN = 3
 
@@ -39,7 +34,7 @@ CHUNK_SIZE = 2048
 
 class SonicRGB(object):
 
-    def __init__(self, red=RED, green=GREEN, blue=BLUE, commonCathode=True,
+    def __init__(self, red, green, blue, commonCathode=True,
                  pwmFrequency=100, cutoffs=None):
         self.red = red
         self.green = green
