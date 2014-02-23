@@ -9,6 +9,11 @@ import RPi.GPIO as GPIO
 import time
 import subprocess
 import os
+from sonicRGB import SonicRGB
+
+m = SonicRGB(pwmFrequency=500, commonCathode=False,
+             cutoffs=[50, 500, 2000, 15000])
+
 
 # Use numbering based on P1 header
 GPIO.setmode(GPIO.BOARD)
@@ -63,22 +68,23 @@ def button(channel):
 
 # Add events for buttons
 # The software debounce option sucks, do it properly
-for btn in BUTTONS:
-    GPIO.add_event_detect(btn, GPIO.RISING, callback=button)
+GPIO.add_event_detect(BUTTONS[0], GPIO.RISING, callback=button)
+GPIO.add_event_detect(BUTTONS[1], GPIO.BOTH, callback=button)
 
 
 # The MP3 files
-MP3 = ['mp3/tardis.mp3', 'mp3/dalekchorus1a.mp3']
+MP3 = ['mp3/theme.mp3', 'mp3/dalekchorus1a.mp3']
 
 def play(index):
     busy()
-    try:
-        with open(os.devnull, 'w') as DEVNULL:
-            subprocess.check_call(['omxplayer', MP3[index]],
-                                  stdout=DEVNULL,
-                                  stderr=DEVNULL)
-    except:
-        pass
+    m.play(MP3[index])
+#    try:
+#        with open(os.devnull, 'w') as DEVNULL:
+#            subprocess.check_call(['omxplayer', MP3[index]],
+#                                  stdout=DEVNULL,
+#                                  stderr=DEVNULL)
+#    except:
+#        pass
     idle()
 
 # Main "event loop" for testing

@@ -27,8 +27,8 @@ import alsaaudio as audio
 
 # Define PINS
 RED = 7
-GREEN = 8
-BLUE = 10
+GREEN = 24
+BLUE = 26
 
 # Number of frequency channels
 GPIOLEN = 3
@@ -40,12 +40,13 @@ CHUNK_SIZE = 2048
 class SonicRGB(object):
 
     def __init__(self, red=RED, green=GREEN, blue=BLUE, commonCathode=True,
-                 pwmFrequency=100):
+                 pwmFrequency=100, cutoffs=None):
         self.red = red
         self.green = green
         self.blue = blue
         self.commonCathode = commonCathode
         self.pwmFrequency = pwmFrequency
+        self.cutoffs = cutoffs
         if commonCathode:
             self.ON = 0
         else:
@@ -88,9 +89,9 @@ class SonicRGB(object):
             self.musicFile = decoder.open(track)
 
         self.sample_rate = self.musicFile.getframerate()
-        print("sample_rate", self.sample_rate)
+        #print("sample_rate", self.sample_rate)
         self.num_channels = self.musicFile.getnchannels()
-        print("num_channels", self.num_channels)
+        #print("num_channels", self.num_channels)
 
         self.output = audio.PCM(audio.PCM_PLAYBACK, audio.PCM_NORMAL)
         self.output.setchannels(self.num_channels)
@@ -99,7 +100,7 @@ class SonicRGB(object):
         self.output.setperiodsize(CHUNK_SIZE)
 
         self.frequency_limits = self._calculate_channel_frequency(50, 10000)
-        print("frequency_limits", self.frequency_limits)
+        #print("frequency_limits", self.frequency_limits)
 
         # Start playing in new thread...
         self.playing = True
@@ -188,10 +189,10 @@ class SonicRGB(object):
             result[i] = np.sum(power[self._piff(frequency_limits[i][0], sample_rate):
                                      self._piff(frequency_limits[i][1], sample_rate):1])
         result = np.clip(result,1.0,1.0e20)
-        #mag = 0.01*np.sqrt(np.dot(result, result))
-        #result = result/mag
+        mag = 0.01*np.sqrt(np.dot(result, result))
+        result = result/mag
         #print(result)
-        result = np.clip(100 * result / np.max(result), 0, 100)
+        #result = np.clip(100 * result / np.max(result), 0, 100)
         return result
 
     def _piff(self, val, sample_rate):
@@ -201,11 +202,9 @@ class SonicRGB(object):
     def _calculate_channel_frequency(self, min_frequency, max_frequency):
         '''Calculate frequency values for each channel'''
 
-        f0 = 0
-        f1 = 250
-        f2 = 2000
-        f3 = 20000
-        return [[f0, f1], [f1, f2], [f2, f3]]
+        if self.cutoffs:
+            f0, f1, f2, f3 = self.cutoffs
+            return [[f0, f1], [f1, f2], [f2, f3]]
 
         # How many channels do we need to calculate the frequency for
         channel_length = GPIOLEN
