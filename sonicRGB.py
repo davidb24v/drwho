@@ -24,6 +24,8 @@ import wave
 import decoder
 import numpy as np
 import alsaaudio as audio
+import os
+import threading
 
 # Number of frequency channels
 GPIOLEN = 3
@@ -34,7 +36,9 @@ CHUNK_SIZE = 2048
 
 class SonicRGB(object):
 
-    def __init__(self, red, green, blue, commonCathode=True,
+    number = 0
+
+    def __init__(self, red, green, blue, commonCathode=False,
                  pwmFrequency=100, cutoffs=None):
         self.red = red
         self.green = green
@@ -48,7 +52,7 @@ class SonicRGB(object):
             self.ON = 100
         self.OFF = 100 - self.ON
  
-        self.playing = False
+        self.playing = None
 
         # Use numbering based on P1 header
         GPIO.setmode(GPIO.BOARD)
@@ -69,13 +73,22 @@ class SonicRGB(object):
         for p in self.pwm:
             p.start(self.OFF)
 
-    def play(self, track):
+        # id of current player
+        self.curId = None
+
+        # Flag for restaring current track
+        self._restart = False
+
+    def play(self, id, track, finished):
 
         # If we're already playing a track, interrupt it and wait
         # for everything to be cleared
         if self.playing:
-            self._player.terminate()
-            self.playing = False
+            self._restart = True
+            return
+
+        # id of caller
+        self.curId = id
 
         # Set up audio
         if track.lower().endswith('.wav'):
@@ -84,9 +97,7 @@ class SonicRGB(object):
             self.musicFile = decoder.open(track)
 
         self.sample_rate = self.musicFile.getframerate()
-        #print("sample_rate", self.sample_rate)
         self.num_channels = self.musicFile.getnchannels()
-        #print("num_channels", self.num_channels)
 
         self.output = audio.PCM(audio.PCM_PLAYBACK, audio.PCM_NORMAL)
         self.output.setchannels(self.num_channels)
@@ -94,53 +105,55 @@ class SonicRGB(object):
         self.output.setformat(audio.PCM_FORMAT_S16_LE)
         self.output.setperiodsize(CHUNK_SIZE)
 
-        self.frequency_limits = self._calculate_channel_frequency(50, 10000)
-        #print("frequency_limits", self.frequency_limits)
+        self.frequency_limits = self._calculate_channel_frequency(50, 15000)
 
-        # Start playing in new thread...
+        # Start playing...
         self.playing = True
-        #self._player = Process(target=_play, args=[se])
-        #self._player.start()
-        self._play()
+        self.thread = threading.Thread(target=self._play, args=[finished])
+        self.thread.start()
 
-    def _play(self, select=None):
+    def _play(self, finished):
         for p in self.pwm:
             p.ChangeDutyCycle(self.OFF)
 
         data = self.musicFile.readframes(CHUNK_SIZE)
-        count = 0
         while data != '':
             self.output.write(data)
 
             values = self._calculate_levels(data, self.sample_rate,
                                             self.frequency_limits)
-            #print(values)
 
-            if select is None:
-                if self.commonCathode:
-                    for p, val in zip(self.pwm, values):
-                        p.ChangeDutyCycle(int(100 - val))
-                else:
-                    for p, val in zip(self.pwm, values):
-                        p.ChangeDutyCycle(int(val))
+            if self.commonCathode:
+                for p, val in zip(self.pwm, values):
+                    p.ChangeDutyCycle(int(100 - val))
             else:
-                if self.commonCathode:
-                    val = values[select]
-                    self.pwm[select].ChangeDutyCycle(int(100 - val))
-                else:
-                    val = values[select]
-                    self.pwm[select].ChangeDutyCycle(int(val))
+                for p, val in zip(self.pwm, values):
+                    p.ChangeDutyCycle(int(val))
 
-
-            count = count+1
-            #print(count)
+            if self._restart:
+                try:
+                    self.musicFile.rewind()
+                except:
+                    pass
+                self._restart = False
             data = self.musicFile.readframes(CHUNK_SIZE)
 
         self.musicFile.close()
-        self.playing = False
         for p in self.pwm:
             p.ChangeDutyCycle(self.OFF)
+        finished()
+        self.playing = False
+        self.curId = None
+        return 0
 
+    def busy(self, id):
+        if self.curId:
+            return self.curId != id
+        else:
+            return False
+
+    def restart(self):
+        self._restart = True
 
     def _calculate_levels(self, data, sample_rate, frequency_limits):
         '''Calculate frequency response for each channel
