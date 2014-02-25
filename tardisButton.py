@@ -11,6 +11,7 @@ import RPi.GPIO as GPIO
 import os
 import inspect
 from glob import glob
+from indicators import Indicators
 
 GPIO.setmode(GPIO.BOARD)
 
@@ -26,6 +27,9 @@ class TardisButton(object):
         # enumerate this instance
         TardisButton.__number += 1
         self.__name = str(TardisButton.__number)
+
+        # Grab a light
+        self.light = Indicators()
 
         # which file to play next
         self.__next = 0
@@ -78,6 +82,7 @@ class TardisButton(object):
         else:
             if not self.player.busy(self.__name):
                 self.playing = self.__next
+                self.light.on()
                 self.player.play(self.__name, self.__files[self.playing], self.__done)
                 self.__next += 1
                 if self.__next == len(self.__files):
@@ -88,4 +93,5 @@ class TardisButton(object):
 
     def __done(self):
         self.playing = -1
+        self.light.off()
 

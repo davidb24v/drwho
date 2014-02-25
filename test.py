@@ -17,9 +17,9 @@ b1 = TardisButton(11, m)
 b2 = TardisButton(13, m)
 
 br = 100
-r = PulsatingLED(19, brightness=br)
-g = PulsatingLED(21, offset=45.0, brightness=br)
-b = PulsatingLED(23, offset=90.0, brightness=br)
+r = PulsatingLED(19, brightness=br, delay=0.025)
+g = PulsatingLED(21, offset=45.0, brightness=br, delay=0.005)
+b = PulsatingLED(23, offset=90.0, brightness=br, delay=0.01)
 
 r.start()
 g.start()
