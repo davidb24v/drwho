@@ -35,11 +35,5 @@ nosetests.xml
 .project
 .pydevproject
 mp3/
-codecs.pdc
-decoder.py
-fileinfo.py
 wav/
 Sounds/
-Adafruit-Raspberry-Pi-Python-Code/
-Adafruit_I2C.py
-Adafruit_MCP230xx.py

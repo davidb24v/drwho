@@ -10,7 +10,9 @@ import time
 import threading
 import math
 
+
 class PulsatingLED(object):
+
     '''
     Vary brightness of an LED using PWM to apply a sine squared
     waveform: sin((theta+offset)*k)**2
@@ -31,7 +33,8 @@ class PulsatingLED(object):
         self.pwm.start(0)
 
         # Setup our data
-        self.values = [math.sin((x + offset) * k * math.pi / 180.0) for x in range(0, 181)]
+        self.values = [math.sin((x + offset) * k * math.pi / 180.0)
+                       for x in range(0, 181)]
         self.values = [int(brightness * abs(x) ** power) for x in self.values]
 
     def start(self):
@@ -55,5 +58,3 @@ class PulsatingLED(object):
             time.sleep(self.delay)
         self.pwm.start(0)
         return 0
-
-

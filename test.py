@@ -15,18 +15,24 @@ m = SonicRGB(red=7, green=24, blue=26,
 
 b1 = TardisButton(11, m)
 b2 = TardisButton(13, m)
+b3 = TardisButton(12, m)
+b4 = TardisButton(16, m)
+b5 = TardisButton(18, m)
 
 br = 100
-r = PulsatingLED(19, brightness=br, delay=0.025)
-g = PulsatingLED(21, offset=45.0, brightness=br, delay=0.005)
+w = PulsatingLED(15, brightness=br/4, delay=0.01)
+r = PulsatingLED(19, offset=30.0, brightness=br, delay=0.025)
+g = PulsatingLED(21, offset=60.0, brightness=br, delay=0.005)
 b = PulsatingLED(23, offset=90.0, brightness=br, delay=0.01)
 
+w.start()
 r.start()
 g.start()
 b.start()
 
 time.sleep(300)
 
+w.stop()
 r.stop()
 g.stop()
 b.stop()

@@ -33,6 +33,9 @@ GPIOLEN = 3
 # How much data to read at once (must be 2**n)
 CHUNK_SIZE = 2048
 
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
 
 class SonicRGB(object):
 
@@ -51,12 +54,10 @@ class SonicRGB(object):
         else:
             self.ON = 100
         self.OFF = 100 - self.ON
- 
+
         self.playing = None
 
         # Use numbering based on P1 header
-        GPIO.setmode(GPIO.BOARD)
-        #GPIO.setwarnings(False)
         GPIO.setup(self.red, GPIO.OUT)
         GPIO.setup(self.green, GPIO.OUT)
         GPIO.setup(self.blue, GPIO.OUT)
@@ -118,7 +119,10 @@ class SonicRGB(object):
 
         data = self.musicFile.readframes(CHUNK_SIZE)
         while data != '':
-            self.output.write(data)
+            try:
+                self.output.write(data)
+            except:
+                break
 
             values = self._calculate_levels(data, self.sample_rate,
                                             self.frequency_limits)
@@ -168,7 +172,7 @@ class SonicRGB(object):
         # create a numpy array. This won't work with a mono file, stereo only.
         data_stereo = np.frombuffer(data, dtype=np.int16)
 
-        if ( self.num_channels == 2 ):
+        if (self.num_channels == 2):
             # data has two channels and 2 bytes per channel
             data = np.empty(len(data) / 4)
             # pull out the even values, just using left channel
@@ -193,13 +197,14 @@ class SonicRGB(object):
 
         result = [0 for i in range(GPIOLEN)]
         for i in range(GPIOLEN):
-            # take the log10 of the resulting sum to approximate how human ears perceive sound levels
+            # take the log10 of the resulting sum to approximate how human ears
+            # perceive sound levels
             result[i] = np.sum(power[self._piff(frequency_limits[i][0], sample_rate):
                                      self._piff(frequency_limits[i][1], sample_rate):1])
-        result = np.clip(result,1.0,1.0e20)
-        mag = 0.01*np.sqrt(np.dot(result, result))
-        result = result/mag
-        #print(result)
+        result = np.clip(result, 1.0, 1.0e20)
+        mag = 0.01 * np.sqrt(np.dot(result, result))
+        result = result / mag
+        # print(result)
         #result = np.clip(100 * result / np.max(result), 0, 100)
         return result
 
@@ -224,8 +229,10 @@ class SonicRGB(object):
 
         frequency_limits.append(min_frequency)
         for i in range(1, GPIOLEN + 1):
-            frequency_limits.append(frequency_limits[-1] * 2 ** octaves_per_channel)
+            frequency_limits.append(
+                frequency_limits[-1] * 2 ** octaves_per_channel)
         for i in range(0, channel_length):
-            frequency_store.append((frequency_limits[i], frequency_limits[i + 1]))
+            frequency_store.append(
+                (frequency_limits[i], frequency_limits[i + 1]))
 
         return frequency_store

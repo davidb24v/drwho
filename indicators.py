@@ -6,10 +6,11 @@ Indicator (light) class for "Dr Who" themed sound & light box
 '''
 from Adafruit_MCP230xx import *
 
+
 class Indicators(object):
 
     __next = 0
-    mcp = Adafruit_MCP230XX(address = 0x20, num_gpios = 8)
+    mcp = Adafruit_MCP230XX(address=0x20, num_gpios=8)
 
     def __init__(self):
         self.pin = Indicators.__next
@@ -26,5 +27,3 @@ class Indicators(object):
     def allOff(self):
         for pin in range(Indicators.__next):
             Indicators.mcp.output(pin, 0)
-
-

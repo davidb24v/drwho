@@ -9,14 +9,18 @@ Button for "Dr Who" themed sound & light box
 from __future__ import print_function
 import RPi.GPIO as GPIO
 import os
+import time
 import inspect
 from glob import glob
 from indicators import Indicators
 
 GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
+PATTERNS = ['*.wav', '*.mp3', '*.WAV', '*.MP3']
 
 class TardisButton(object):
-    
+
     __number = 0
 
     def __init__(self, pin, player, latching=False, dir=None):
@@ -30,6 +34,7 @@ class TardisButton(object):
 
         # Grab a light
         self.light = Indicators()
+        self.light.on()
 
         # which file to play next
         self.__next = 0
@@ -42,18 +47,11 @@ class TardisButton(object):
                                   inspect.getfile(inspect.currentframe())))
             self.__dir = os.path.join(dir, 'Sounds', self.__name)
 
-        # Look for files
-        files = []
-        def getFiles(dir, patterns):
-            result = []
-            for pattern in patterns:
-                for f in glob(os.path.join(dir, pattern)):
-                    result.append(f)
-            return result
+        # Scan for data files
+        self._getFiles()
 
-        # Look for wav and mp3 files, allow for a certain crap OS to cock about with case
-        self.__files = getFiles(self.__dir, ['*.wav', '*.mp3', '*.WAV', '*.MP3'])
-        self.__files.sort()
+        # Note time directory last changed
+        self.__mtime = os.path.getmtime(self.__dir)
 
         # are we active
         self.enable()
@@ -67,6 +65,18 @@ class TardisButton(object):
 
         # which track are we playing
         self.playing = -1
+
+        # Switch off our light
+        self.light.off()
+
+    # Look for files
+    def _getFiles(self):
+        result = []
+        for pattern in PATTERNS:
+            for f in glob(os.path.join(self.__dir, pattern)):
+                result.append(f)
+        self.__files = result
+        self.__files.sort()
 
     def enable(self):
         self.__active = len(self.__files) > 0
@@ -83,7 +93,8 @@ class TardisButton(object):
             if not self.player.busy(self.__name):
                 self.playing = self.__next
                 self.light.on()
-                self.player.play(self.__name, self.__files[self.playing], self.__done)
+                self.player.play(
+                    self.__name, self.__files[self.playing], self.__done)
                 self.__next += 1
                 if self.__next == len(self.__files):
                     self.__next = 0
@@ -94,4 +105,10 @@ class TardisButton(object):
     def __done(self):
         self.playing = -1
         self.light.off()
-
+        mtime = os.path.getmtime(self.__dir)
+        if mtime > self.__mtime:
+            self.light.on()
+            self.__mtime = mtime
+            self._getFiles()
+            self.__next = 0
+            self.light.off()
