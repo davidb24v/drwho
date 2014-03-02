@@ -17,7 +17,11 @@ from indicators import Indicators
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
-PATTERNS = ['*.wav', '*.mp3', '*.WAV', '*.MP3']
+FILETYPES = ['*.wav', '*.mp[1234]', '*.m4[ab]' ,'*.ogg', '*.flac', '*.oga', '*.aac']
+PATTERNS = []
+for ft in FILETYPES:
+    PATTERNS.append(ft)
+    PATTERNS.append(ft.upper())
 
 class TardisButton(object):
 
@@ -49,9 +53,6 @@ class TardisButton(object):
 
         # Scan for data files
         self._getFiles()
-
-        # Note time directory last changed
-        self.__mtime = os.path.getmtime(self.__dir)
 
         # are we active
         self.enable()
@@ -105,10 +106,3 @@ class TardisButton(object):
     def __done(self):
         self.playing = -1
         self.light.off()
-        mtime = os.path.getmtime(self.__dir)
-        if mtime > self.__mtime:
-            self.light.on()
-            self.__mtime = mtime
-            self._getFiles()
-            self.__next = 0
-            self.light.off()

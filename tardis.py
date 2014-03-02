@@ -1,100 +1,44 @@
-'''
-
-Dr Who Sound and Light
-
-'''
-
-from __future__ import print_function
-import RPi.GPIO as GPIO
-import time
-import subprocess
-import os
 from sonicRGB import SonicRGB
-
-m = SonicRGB(pwmFrequency=500, commonCathode=False,
-             cutoffs=[50, 500, 2000, 15000])
-
-
-# Use numbering based on P1 header
-GPIO.setmode(GPIO.BOARD)
+import time
+import RPi.GPIO as GPIO
+from pulsatingLED import PulsatingLED
+from tardisButton import TardisButton
+import sys
 
 # Define PINS
-STATUS_LED = [15, 16]
+RED = 7
+GREEN = 24
+BLUE = 26
 
-BUTTONS = [11, 13]
+m = SonicRGB(red=7, green=24, blue=26,
+             pwmFrequency=500, cutoffs=[50, 500, 2000, 15000])
 
-# Initialise pins
-# LEDs
-for led in STATUS_LED:
-    GPIO.setup(led, GPIO.OUT, GPIO.LOW)
+b1 = TardisButton(11, m)
+b2 = TardisButton(13, m)
+b3 = TardisButton(12, m)
+b4 = TardisButton(16, m)
+b5 = TardisButton(18, m)
 
-# Buttons
-for button in BUTTONS:
-    GPIO.setup(button, GPIO.IN)
+br = 100
+w = PulsatingLED(15, brightness=br, delay=0.01)
+r = PulsatingLED(19, offset=30.0, brightness=br, delay=0.025)
+g = PulsatingLED(21, offset=60.0, brightness=br, delay=0.005)
+b = PulsatingLED(23, offset=90.0, brightness=br, delay=0.01)
 
-# Status LED handling
-STATUS = 0
-
-
-def showStatus():
-    GPIO.output(STATUS_LED[0], STATUS)
-    GPIO.output(STATUS_LED[1], 1 - STATUS)
-
-
-def toggleStatus():
-    global STATUS
-    STATUS = 1 - STATUS
-    showStatus()
+w.start()
+r.start()
+g.start()
+b.start()
 
 
-def idle():
-    global STATUS
-    STATUS = 0
-    showStatus()
-
-
-def busy():
-    global STATUS
-    STATUS = 1
-    showStatus()
-
-# Callbacks for Buttons
-def button(channel):
-    global BUTTON_PRESSED
-    if STATUS != 0:
-        return
-    index = BUTTONS.index(channel)
-    play(index)
-
-# Add events for buttons
-# The software debounce option sucks, do it properly
-GPIO.add_event_detect(BUTTONS[0], GPIO.RISING, callback=button)
-GPIO.add_event_detect(BUTTONS[1], GPIO.BOTH, callback=button)
-
-
-# The MP3 files
-MP3 = ['mp3/theme.mp3', 'mp3/dalekchorus1a.mp3']
-
-def play(index):
-    busy()
-    m.play(MP3[index])
-#    try:
-#        with open(os.devnull, 'w') as DEVNULL:
-#            subprocess.check_call(['omxplayer', MP3[index]],
-#                                  stdout=DEVNULL,
-#                                  stderr=DEVNULL)
-#    except:
-#        pass
-    idle()
-
-# Main "event loop" for testing
-idle()
 try:
-    time.sleep(300)
+    while True:
+        time.sleep(1)
 except:
-    pass
-finally:
-    # Release GPIO resources
-    time.sleep(0.1)
+    w.stop()
+    r.stop()
+    g.stop()
+    b.stop()
+
     GPIO.cleanup()
-    print("\nOk")
+
