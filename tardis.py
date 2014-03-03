@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 from pulsatingLED import PulsatingLED
 from tardisButton import TardisButton
 import sys
+import asyncore
 
 # Define PINS
 RED = 7
@@ -32,8 +33,8 @@ b.start()
 
 
 try:
-    while True:
-        time.sleep(1)
+    asyncore.loop()
+
 except:
     w.stop()
     r.stop()
@@ -41,4 +42,3 @@ except:
     b.stop()
 
     GPIO.cleanup()
-

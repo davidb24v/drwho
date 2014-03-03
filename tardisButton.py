@@ -13,6 +13,11 @@ import time
 import inspect
 from glob import glob
 from indicators import Indicators
+import asyncore
+import pyinotify
+
+# watched events
+mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -69,6 +74,20 @@ class TardisButton(object):
 
         # Switch off our light
         self.light.off()
+
+        # Watch Manager
+        self.wm = pyinotify.WatchManager()  
+
+        class EventHandler(pyinotify.ProcessEvent):
+            def process_IN_CREATE(self, event):
+                print("Creating:", dir(event), event.pathname)
+
+            def process_IN_DELETE(self, event):
+                print("Removing:", event.pathname)
+
+        self.notifier = pyinotify.AsyncNotifier(wm, EventHandler())
+        self.wdd = wm.add_watch(self.__dir, mask, rec=True)
+
 
     # Look for files
     def _getFiles(self):

@@ -1,5 +1,4 @@
-drwho
-=====
+# drwho
 
 Bits and pieces towards a Dr Who themed sound and light box
 
@@ -29,3 +28,38 @@ http://www.brailleweb.com/
 IS NOT THE OFFICIAL VERSION WHATEVER MAY BE WRITTEN IN THE SOURCE CODE AND
 SHOULD BE TREATED WITH ENORMOUS CARE
 THE AUTHOR IS NOT ACCOUNTABLE FOR SUCH SOURCE CODE
+
+
+## Setup the Pi
+
+Edit /etc/modprobe.d/raspi-blacklist.conf and comment out the line:
+> blacklist i2c-bcm2708
+
+Edit /etc/modules and add:
+> i2c-bcm2708
+> i2c-dev
+
+Reboot.
+
+### Install packages
+
+>sudo apt-get install python-setuptools python-dev python-pip \
+>                     python-smbus i2c-tools python-alsaaudio
+
+
+> wget http://www.brailleweb.com/downloads/decoder-1.5XB-Unix.zip
+> unzip decoder-1.5XB-Unix.zip
+> cd decoder-1.5XB-Unix
+> cd mutagen-1.19
+> sudo python setup.py install
+> cd
+
+### Get this software
+> git clone git@github.com:davidb24v/drwho.git
+
+### Integrate into system
+
+Edit /etc/rc.local and add the line
+
+> python /home/pi/drwho/tardis.py
+
