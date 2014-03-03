@@ -37,6 +37,7 @@ Edit /etc/modprobe.d/raspi-blacklist.conf and comment out the line:
 
 Edit /etc/modules and add:
 > i2c-bcm2708
+
 > i2c-dev
 
 Reboot.
@@ -48,10 +49,15 @@ Reboot.
 
 
 > wget http://www.brailleweb.com/downloads/decoder-1.5XB-Unix.zip
+
 > unzip decoder-1.5XB-Unix.zip
+
 > cd decoder-1.5XB-Unix
+
 > cd mutagen-1.19
+
 > sudo python setup.py install
+
 > cd
 
 ### Get this software
