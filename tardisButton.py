@@ -13,11 +13,6 @@ import time
 import inspect
 from glob import glob
 from indicators import Indicators
-import asyncore
-import pyinotify
-
-# watched events
-mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -75,19 +70,6 @@ class TardisButton(object):
         # Switch off our light
         self.light.off()
 
-        # Watch Manager
-        self.wm = pyinotify.WatchManager()  
-
-        class EventHandler(pyinotify.ProcessEvent):
-            def process_IN_CREATE(self, event):
-                print("Creating:", dir(event), event.pathname)
-
-            def process_IN_DELETE(self, event):
-                print("Removing:", event.pathname)
-
-        self.notifier = pyinotify.AsyncNotifier(wm, EventHandler())
-        self.wdd = wm.add_watch(self.__dir, mask, rec=True)
-
 
     # Look for files
     def _getFiles(self):
@@ -105,22 +87,22 @@ class TardisButton(object):
         self.__active = False
 
     def __event(self, channel):
-        if not self.__active:
-            return
+        if self.playing < 0:
+            self.player.stop()
+
         if self.playing >= 0:
             self.player.restart()
         else:
-            if not self.player.busy(self.__name):
-                self.playing = self.__next
-                self.light.on()
-                self.player.play(
-                    self.__name, self.__files[self.playing], self.__done)
-                self.__next += 1
-                if self.__next == len(self.__files):
-                    self.__next = 0
+            self.playing = self.__next
+            self.light.on()
+            self.player.play(
+                self.__name, self.__files[self.playing], self.__done)
+            self.__next += 1
+            if self.__next == len(self.__files):
+                self.__next = 0
 
     def test(self):
-        self.__event()
+        self.__event(self.pin)
 
     def __done(self):
         self.playing = -1

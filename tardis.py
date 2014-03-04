@@ -3,8 +3,11 @@ import time
 import RPi.GPIO as GPIO
 from pulsatingLED import PulsatingLED
 from tardisButton import TardisButton
+import subprocess
 import sys
-import asyncore
+
+# Pump up da volume...
+subprocess.call(["amixer", "set", "PCM", "100%"])
 
 # Define PINS
 RED = 7
@@ -20,6 +23,7 @@ b3 = TardisButton(12, m)
 b4 = TardisButton(16, m)
 b5 = TardisButton(18, m)
 
+
 br = 100
 w = PulsatingLED(15, brightness=br, delay=0.01)
 r = PulsatingLED(19, offset=30.0, brightness=br, delay=0.025)
@@ -33,7 +37,8 @@ b.start()
 
 
 try:
-    asyncore.loop()
+    while True:
+        time.sleep(1)
 
 except:
     w.stop()

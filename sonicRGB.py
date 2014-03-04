@@ -80,6 +80,14 @@ class SonicRGB(object):
         # Flag for restaring current track
         self._restart = False
 
+        # Flag to terminate current track
+        self.stopNow = False
+
+    def stop(self):
+        if self.playing:
+            self.stopNow = True
+            self.thread.join()
+
     def play(self, id, track, finished):
 
         # If we're already playing a track, interrupt it and wait
@@ -118,7 +126,7 @@ class SonicRGB(object):
             p.ChangeDutyCycle(self.OFF)
 
         data = self.musicFile.readframes(CHUNK_SIZE)
-        while data != '':
+        while data != '' and not self.stopNow:
             try:
                 self.output.write(data)
             except:
@@ -148,6 +156,7 @@ class SonicRGB(object):
         finished()
         self.playing = False
         self.curId = None
+        self.stopNow = False
         return 0
 
     def busy(self, id):
