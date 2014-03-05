@@ -56,5 +56,9 @@ class PulsatingLED(object):
             if self.count == len(self.values):
                 self.count = 0
             time.sleep(self.delay)
-        self.pwm.start(0)
+        self.pwm.ChangeDutyCycle(0)
         return 0
+
+    def on(self):
+            self.stop()
+            self.pwm.ChangeDutyCycle(100)

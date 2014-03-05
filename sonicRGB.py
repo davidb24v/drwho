@@ -168,6 +168,12 @@ class SonicRGB(object):
     def restart(self):
         self._restart = True
 
+    # Light up in red
+    def redAlert(self):
+        self.pwm[0].ChangeDutyCycle(self.ON)
+        self.pwm[1].ChangeDutyCycle(self.OFF)
+        self.pwm[2].ChangeDutyCycle(self.OFF)
+
     def _calculate_levels(self, data, sample_rate, frequency_limits):
         '''Calculate frequency response for each channel
 

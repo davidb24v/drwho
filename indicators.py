@@ -10,6 +10,17 @@ from Adafruit_MCP230xx import *
 class Indicators(object):
 
     __next = 0
+
+    @staticmethod
+    def allOff():
+        for pin in range(Indicators.__next):
+            Indicators.mcp.output(pin, 0)
+
+    @staticmethod
+    def allOn():
+        for pin in range(Indicators.__next):
+            Indicators.mcp.output(pin, 1)
+
     mcp = Adafruit_MCP230XX(address=0x20, num_gpios=8)
 
     def __init__(self):
@@ -24,6 +35,3 @@ class Indicators(object):
     def off(self):
         Indicators.mcp.output(self.pin, 0)
 
-    def allOff(self):
-        for pin in range(Indicators.__next):
-            Indicators.mcp.output(pin, 0)

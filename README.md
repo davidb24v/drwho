@@ -30,6 +30,19 @@ SHOULD BE TREATED WITH ENORMOUS CARE
 THE AUTHOR IS NOT ACCOUNTABLE FOR SUCH SOURCE CODE
 
 
+Includes modified code from:
+
+  http://www.lightshowpi.com/
+ 
+  Author: Todd Giles (todd@lightshowpi.com)
+  Author: Chris Usey (chris.usey@gmail.com)
+  Author: Ryan Jennings
+  Jan 12 2014 - latest additions / mutilations by Scott Driscoll
+  CuriousInventor.com | https://plus.google.com/+ScottDriscoll
+ 
+  Licensed under the BSD license.
+
+
 ## Setup the Pi
 
 Edit /etc/modprobe.d/raspi-blacklist.conf and comment out the line:
