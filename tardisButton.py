@@ -107,3 +107,19 @@ class TardisButton(object):
     def __done(self):
         self.playing = -1
         self.light.off()
+
+    def fileEvent(self):
+        if self.playing >= 0:
+            self.player.stop()
+        self.light.off()
+        self.disable()
+        time.sleep(0.1)
+        self._getFiles()
+        for i in range(3):
+            self.light.on()
+            time.sleep(0.01)
+            self.light.off()
+            time.sleep(0.05)
+        self.__next = 0
+        self.playing = -1
+        self.enable()
