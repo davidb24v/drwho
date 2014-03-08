@@ -51,6 +51,17 @@ class TardisButton(object):
                                   inspect.getfile(inspect.currentframe())))
             self.__dir = os.path.join(dir, 'Sounds', self.__name)
 
+        # Create directory if it doesn't exist
+        try:
+            subprocess.call(['mkdir', '-p', self.__dir])
+        except:
+            pass
+        # Set Permissions
+        try:
+            subprocess.call(['chown', '-R', 'pi.pi', self.__dir, '..', '..', 'Sounds'])
+        except:
+            pass
+
         # Scan for data files
         self._getFiles()
 
