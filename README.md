@@ -57,11 +57,11 @@ Reboot.
 
 ### Install packages
 
->sudo apt-get install python-setuptools python-dev python-pip \
+>sudo apt-get install python-setuptools python-dev python-pip
 
->                     python-smbus i2c-tools python-alsaaudio \
+>sudo apt-get install python-smbus i2c-tools python-alsaaudio
 
->                     python-inotifyx python-simplejson
+>sudo apt-get install python-inotifyx python-simplejson
 
 
 > wget http://www.brailleweb.com/downloads/decoder-1.5XB-Unix.zip
