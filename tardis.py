@@ -11,6 +11,7 @@ import os
 import glob
 import inspect
 import inotifyx
+import json
 
 # Setup a watch
 fd = inotifyx.init()
@@ -46,11 +47,32 @@ inotifyx.add_watch(fd, os.path.join(dir, "Sounds", "Volume", "Level.txt"),  mask
 
 
 # The 10mm LEDs: White, Red, Green, Blue
-br = 100
-w = PulsatingLED(15, offset=0.0, brightness=br, delay=0.01)
-r = PulsatingLED(19, offset=30.0, brightness=br, delay=0.01)
-g = PulsatingLED(21, offset=60.0, brightness=br, delay=0.01)
-b = PulsatingLED(23, offset=90.0, brightness=br, delay=0.01)
+
+# Firstly, do we have a config file?
+configFile = os.path.join(dir, "Sounds", "10mm.json")
+if glob.glob(configFile):
+    cf = open(configFile, "rb")
+    settings = json.load(cf)
+    cf.close()
+    white = settings['white']
+    red   = settings['red']
+    green = settings['green']
+    blue  = settings['blue']
+else:
+    white = {"offset":  0.0, "brightness": 100, "delay": 0.01}
+    red   = {"offset": 30.0, "brightness": 100, "delay": 0.01}
+    green = {"offset": 60.0, "brightness": 100, "delay": 0.01}
+    blue  = {"offset": 90.0, "brightness": 100, "delay": 0.01}
+    settings = {"white": white, "red": red, "green": green, "blue": blue}
+    cf = open(configFile, "wb")
+    json.dump(settings, cf)
+    cf.close()
+    subprocess.call(['chown', 'pi.pi', configFile])
+
+w = PulsatingLED(15, offset=white['offset'], brightness=white['brightness'], delay=white['delay'])
+r = PulsatingLED(19, offset=red['offset'], brightness=red['brightness'], delay=red['delay'])
+g = PulsatingLED(21, offset=green['offset'], brightness=green['brightness'], delay=green['delay'])
+b = PulsatingLED(23, offset=blue['offset'], brightness=blue['brightness'], delay=blue['delay'])
 
 # Monitor the shutdown button
 # Define PINS

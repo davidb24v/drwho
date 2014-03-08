@@ -61,7 +61,7 @@ Reboot.
 
 >                     python-smbus i2c-tools python-alsaaudio \
 
->                     python-inotifyx
+>                     python-inotifyx python-simplejson
 
 
 > wget http://www.brailleweb.com/downloads/decoder-1.5XB-Unix.zip
